@@ -4,6 +4,7 @@ import io.indico.Indico;
 import io.indico.api.results.BatchIndicoResult;
 import io.indico.api.results.IndicoResult;
 import io.indico.api.utils.IndicoException;
+import javafx.scene.control.Alert;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,9 +15,20 @@ import java.util.*;
 public class SortImages {
     private static String apiKey = "5e4416ba27b9ea6066e8f688ea35e45c";
 
+    private static void alertIndico() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Indico Error");
+        alert.setHeaderText("Indico Error");
+        alert.setContentText("Ooops, there is some Indico API Error...");
+
+        alert.showAndWait();
+    }
+
     private static List<Map<String, Double>> indicoResults(String from) {
         System.out.println(".......... DOWNLOADING FROM INDICO ..........");
+
         List<Map<String, Double>> results = null;
+
         try {
             Indico indico = null;
             indico = new Indico(apiKey);
@@ -26,31 +38,35 @@ public class SortImages {
 
             BatchIndicoResult multiple = indico.imageRecognition.predict(listOfFiles);
             results = multiple.getImageRecognition();
+
         } catch(IndicoException e) {
-            System.out.println("Indico API fail...");
             e.printStackTrace();
+            alertIndico();
         } catch(IOException e) {
-            System.out.println("IO Exception...");
             e.printStackTrace();
+            alertIndico();
         }
         return results;
     }
 
     private static Map<String, Double> indicoResult(String url) {
         System.out.println(".......... DOWNLOADING FROM INDICO ..........");
+
         Map<String, Double> result = null;
+
         try {
             Indico indico = null;
             indico = new Indico(apiKey);
+
             IndicoResult multiple = indico.imageRecognition.predict(url);
             result = multiple.getImageRecognition();
 
         } catch(IndicoException e) {
-            System.out.println("Indico API fail...");
             e.printStackTrace();
+            alertIndico();
         } catch(IOException e) {
-            System.out.println("IO Exception...");
             e.printStackTrace();
+            alertIndico();
         }
         return result;
     }
@@ -81,7 +97,6 @@ public class SortImages {
     public static Map<String, Double> getTopFiveIndicoMatches(String url) {
         Map<String, Double> result = indicoResult(url);
         Map<String, Double> topFive = new HashMap<String, Double>();
-        System.out.println(topFive.size());
 
         for(int i = 0; i < 5 && i < result.size(); i++) {
             Map.Entry<String, Double> maxEntry = null;
@@ -93,9 +108,11 @@ public class SortImages {
             topFive.put(maxEntry.getKey(), maxEntry.getValue());
             result.remove(maxEntry.getKey());
         }
+        /*
         for (Map.Entry<String, Double> entry : topFive.entrySet()) {
             System.out.println(entry.getKey() + " " + entry.getValue());
-        }
+        }*/
+
         return topFive;
     }
 }
